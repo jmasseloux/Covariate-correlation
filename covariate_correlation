@@ -1,0 +1,55 @@
+#Set wd
+
+setwd("C:\\Users\\jmasseloux\\Documents\\Thesis\\Covariates")
+
+#Read in covariates csv sheet
+
+allcov = read.csv("covariates_all.csv")
+
+#Correlation matrix (inclusive of NA values)
+
+cor = cor(allcov, method = "pearson", use="complete.obs")
+
+#Calculating P-value for correlation coefficients using cor.prob function
+
+cor.prob <- function(X, dfr = nrow(X) - 2) {
+  R <- cor(X)
+  above <- row(R) < col(R)
+  r2 <- R[above]^2
+  Fstat <- r2 * dfr / (1 - r2)
+  R[above] <- 1 - pf(Fstat, 1, dfr)
+  R
+}
+
+cor_prob = cor.prob(allcov)
+
+#Problem - doesn't work when there are NA values in column - can integrate complete.obs method into function?
+
+#Alternatively, compare each column to all other columns - way to automate loop for all possible column (covariate) combinations?
+
+#CC_wet vs. all
+rho <- pval <- NULL
+
+for(i in 1:ncol(allcov)){
+  rho[i]  <- cor.test(allcov[,1],allcov[,i], method = "pearson", use="complete.obs")$estimate
+  pval[i] <- cor.test(allcov[,1],allcov[,i], method = "pearson", use="complete.obs")$p.value
+}
+
+cor1 <- cbind(rho,pval)
+rownames(cor1) <- paste(colnames(allcov[1]) ,"vs",colnames(allcov[1:ncol(allcov)]))
+cor1
+
+
+#CC_dry vs. all 
+rho <- pval <- NULL
+
+for(i in 1:ncol(allcov)){
+  rho[i]  <- cor.test(allcov[,2],allcov[,i], method = "pearson", use="complete.obs")$estimate
+  pval[i] <- cor.test(allcov[,2],allcov[,i], method = "pearson", use="complete.obs")$p.value
+}
+
+cor2 <- cbind(rho,pval)
+rownames(cor2) <- paste(colnames(allcov[1]) ,"vs",colnames(allcov[1:ncol(allcov)]))
+cor2
+
+#Etc. 
